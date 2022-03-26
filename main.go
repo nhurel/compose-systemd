@@ -84,7 +84,7 @@ func NewContainerService(project string, service *types.ServiceConfig) Service {
 		Wants:             containerServiceNames(project, dependencies),
 		RequiresMountsFor: []string{"%t/containers"},
 		BindsTo:           []string{podServiceName(project)},
-		After:             append([]string{podServiceName(project)}, dependencies...),
+		After:             append([]string{podServiceName(project)}, containerServiceNames(project, dependencies)...),
 
 		Restart:      service.Restart,
 		ExecStartPre: []string{"/bin/rm -f %t/%n.ctr-id"},
