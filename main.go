@@ -185,7 +185,9 @@ Environment=PODMAN_SYSTEMD_UNIT=%n
 Environment={{ $k }}={{ $v }}
 	{{- end }}
 {{- end }}
+{{- if .Service.Restart }}
 Restart={{.Service.Restart}}
+{{- end }}
 TimeoutStopSec=70
 {{- range .Service.ExecStartPre }}
 ExecStartPre={{.}}
