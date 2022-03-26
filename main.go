@@ -51,13 +51,13 @@ func NewPodService(project *types.Project) Service {
 
 		Restart: "on-failure",
 		ExecStartPre: []string{
-			fmt.Sprintf("/bin/rm -f %%t/pod-%s.pid %%t/pod-%s.pod-id", project.Name, project.Name),
-			fmt.Sprintf("/usr/bin/podman pod create --infra-conmon-pidfile %%t/pod-%s.pid --pod-id-file %%t/pod-%s.pod-id --name %s -p %s --replace", project.Name, project.Name, project.Name, strings.Join(ports, " -p ")),
+			"/bin/rm -f %t/%N.pid %t/%N.pod-id",
+			fmt.Sprintf("/usr/bin/podman pod create --infra-conmon-pidfile %%t/%%N.pid --pod-id-file %%t/%%N.pod-id --name %%N -p %s --replace", strings.Join(ports, " -p ")),
 		},
-		ExecStart:    fmt.Sprintf("/usr/bin/podman pod start --pod-id-file %%t/pod-%s.pod-id", project.Name),
-		ExecStop:     fmt.Sprintf("/usr/bin/podman pod stop --ignore --pod-id-file %%t/pod-%s.pod-id -t 10", project.Name),
-		ExecStopPost: fmt.Sprintf("/usr/bin/podman pod rm --ignore -f --pod-id-file %%t/pod-%s.pod-id", project.Name),
-		PIDFile:      fmt.Sprintf("%%t/pod-%s.pid", project.Name),
+		ExecStart:    "/usr/bin/podman pod start --pod-id-file %t/%N.pod-id",
+		ExecStop:     "/usr/bin/podman pod stop --ignore --pod-id-file %t/%N.pod-id -t 10",
+		ExecStopPost: "/usr/bin/podman pod rm --ignore -f --pod-id-file %t/%N.pod-id",
+		PIDFile:      "%t/%N.pid",
 		Type:         "forking",
 	}
 }
@@ -88,7 +88,7 @@ func NewContainerService(project string, service *types.ServiceConfig) Service {
 
 		Restart:      service.Restart,
 		ExecStartPre: []string{"/bin/rm -f %t/%n.ctr-id"},
-		ExecStart:    fmt.Sprintf("/usr/bin/podman container run --cidfile=%%t/%%n.ctr-id --cgroups=no-conmon --rm --pod-id-file %%t/pod-%s.pod-id --sdnotify=conmon -d --replace --name=%s", project, service.Name),
+		ExecStart:    fmt.Sprintf("/usr/bin/podman container run --cidfile=%%t/%%n.ctr-id --cgroups=no-conmon --rm --pod-id-file %%t/%s-pod.pod-id --sdnotify=conmon -d --replace --name=%%N", project),
 		ExecStop:     "/usr/bin/podman stop --ignore --cidfile=%t/%n.ctr-id",
 		ExecStopPost: "/usr/bin/podman rm -f --ignore --cidfile=%t/%n.ctr-id",
 		Type:         "notify",
